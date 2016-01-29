@@ -392,8 +392,7 @@ TEST(CLASSNAME(test_subscription, RMW_IMPLEMENTATION), spin_before_subscription)
   rclcpp::executors::SingleThreadedExecutor executor;
   executor.add_node(node);
 
-  std::thread executor_thread(std::bind(&rclcpp::executors::SingleThreadedExecutor::spin,
-    &executor));
+  executor.spin_some();
 
   auto subscriber = node->create_subscription<test_rclcpp::msg::UInt32>(
     "test_subscription", callback, rmw_qos_profile_default);
@@ -408,11 +407,9 @@ TEST(CLASSNAME(test_subscription, RMW_IMPLEMENTATION), spin_before_subscription)
 
   // wait for the first callback
   printf("callback (1) expected\n");
-  std::this_thread::sleep_for(std::chrono::seconds(1));
+  executor.spin_some();
 
   ASSERT_EQ(1, counter);
-  executor.cancel();
-  executor_thread.join();
 }
 
 // Test of the queue size create_subscription signature.
