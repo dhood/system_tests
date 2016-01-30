@@ -373,10 +373,11 @@ TEST(CLASSNAME(test_subscription, RMW_IMPLEMENTATION), subscription_shared_ptr_c
 
 // Shortened version of the test for subscribing after spinning has started.
 TEST(CLASSNAME(test_subscription, RMW_IMPLEMENTATION), spin_before_subscription) {
-  auto node = rclcpp::Node::make_shared("test_subscription");
+  auto node = rclcpp::Node::make_shared("spin_before_subscription");
 
+  //pub_qos_profile.durability = RMW_QOS_POLICY_TRANSIENT_LOCAL_DURABILITY;
   auto publisher = node->create_publisher<test_rclcpp::msg::UInt32>(
-    "test_subscription", rmw_qos_profile_default);
+    "spin_before_subscription", rmw_qos_profile_default);
 
   uint32_t counter = 0;
   auto callback =
@@ -395,10 +396,11 @@ TEST(CLASSNAME(test_subscription, RMW_IMPLEMENTATION), spin_before_subscription)
   executor.spin_some();
 
   auto subscriber = node->create_subscription<test_rclcpp::msg::UInt32>(
-    "test_subscription", callback, rmw_qos_profile_default);
+    "spin_before_subscription", callback, rmw_qos_profile_default);
 
   // start condition
   ASSERT_EQ(0, counter);
+  std::this_thread::sleep_for(sleep_per_loop);
 
   msg->data = 1;
   // Create a ConstSharedPtr message to publish
@@ -407,7 +409,14 @@ TEST(CLASSNAME(test_subscription, RMW_IMPLEMENTATION), spin_before_subscription)
 
   // wait for the first callback
   printf("callback (1) expected\n");
+
+  size_t loop = 0;
   executor.spin_some();
+  while ((counter != 1) && (loop++ < max_loops)) {
+    printf("callback not called, sleeping and trying again\n");
+    std::this_thread::sleep_for(sleep_per_loop);
+    executor.spin_some();
+  }
 
   ASSERT_EQ(1, counter);
 }
