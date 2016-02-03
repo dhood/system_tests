@@ -400,7 +400,11 @@ TEST(CLASSNAME(test_subscription, RMW_IMPLEMENTATION), spin_before_subscription)
 
   // start condition
   ASSERT_EQ(0, counter);
-  std::this_thread::sleep_for(sleep_per_loop);
+
+  size_t i = 0;
+  while (node->count_subscribers("spin_before_subscription") == 0 && ++i < max_loops) {
+    std::this_thread::sleep_for(sleep_per_loop);
+  }
 
   msg->data = 1;
   // Create a ConstSharedPtr message to publish
