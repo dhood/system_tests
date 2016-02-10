@@ -30,8 +30,12 @@
 # define CLASSNAME(NAME, SUFFIX) NAME
 #endif
 
-#define xstr(s) str(s)
-#define str(s) #s
+#define STRING(s) #s
+
+#define IGNORE_ARGS_FIXED_SLEEP (void)topic_name;\
+  (void)node;\
+  (void)sleep_period;\
+  std::this_thread::sleep_for(timeout);\
 
 static const std::chrono::milliseconds sleep_per_loop(10);
 static const size_t max_loops = 200;
@@ -45,15 +49,9 @@ void busy_wait_for_subscriber(
 {
   std::chrono::microseconds time_slept(0);
 #ifdef RMW_IMPLEMENTATION
-  if (strcmp(xstr(RMW_IMPLEMENTATION), "rmw_fastrtps_cpp") == 0) {
-#else
-  if (true) {
-#endif
-    printf("FastRTPS detected, sleeping for a fixed interval");
-    (void)topic_name;
-    (void)node;
-    (void)sleep_period;
-    std::this_thread::sleep_for(timeout);
+  if (strcmp(STRING(RMW_IMPLEMENTATION), "rmw_fastrtps_cpp") == 0) {
+    printf("FastRTPS detected, sleeping for a fixed interval\n");
+    IGNORE_ARGS_FIXED_SLEEP
   } else {
     while (node->count_subscribers(topic_name) == 0 &&
       time_slept < std::chrono::duration_cast<std::chrono::microseconds>(timeout))
@@ -62,6 +60,9 @@ void busy_wait_for_subscriber(
       time_slept += sleep_period;
     }
   }
+#else
+  IGNORE_ARGS_FIXED_SLEEP
+#endif
 }
 
 TEST(CLASSNAME(test_subscription, RMW_IMPLEMENTATION), subscription_and_spinning) {
