@@ -45,19 +45,16 @@ void busy_wait_for_subscriber(
 {
   std::chrono::microseconds time_slept(0);
 #ifdef RMW_IMPLEMENTATION
-  if (strcmp(xstr(RMW_IMPLEMENTATION), "rmw_fastrtps_cpp") == 0)
+  if (strcmp(xstr(RMW_IMPLEMENTATION), "rmw_fastrtps_cpp") == 0) {
 #else
-  if (true)
+  if (true) {
 #endif
-  {
     printf("FastRTPS detected, sleeping for a fixed interval");
     (void)topic_name;
     (void)node;
     (void)sleep_period;
     std::this_thread::sleep_for(timeout);
-  }
-  else
-  {
+  } else {
     while (node->count_subscribers(topic_name) == 0 &&
       time_slept < std::chrono::duration_cast<std::chrono::microseconds>(timeout))
     {
