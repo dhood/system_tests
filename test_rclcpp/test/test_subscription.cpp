@@ -25,9 +25,13 @@
 #ifdef RMW_IMPLEMENTATION
 # define CLASSNAME_(NAME, SUFFIX) NAME ## __ ## SUFFIX
 # define CLASSNAME(NAME, SUFFIX) CLASSNAME_(NAME, SUFFIX)
+
 #else
 # define CLASSNAME(NAME, SUFFIX) NAME
 #endif
+
+#define xstr(s) str(s)
+#define str(s) #s
 
 static const std::chrono::milliseconds sleep_per_loop(10);
 static const size_t max_loops = 200;
@@ -40,11 +44,26 @@ void busy_wait_for_subscriber(
   std::chrono::microseconds sleep_period = std::chrono::microseconds(100))
 {
   std::chrono::microseconds time_slept(0);
-  while (node->count_subscribers(topic_name) == 0 &&
-    time_slept < std::chrono::duration_cast<std::chrono::microseconds>(timeout))
+#ifdef RMW_IMPLEMENTATION
+  if (strcmp(xstr(RMW_IMPLEMENTATION), "rmw_fastrtps_cpp") == 0)
+#else
+  if (true)
+#endif
   {
-    std::this_thread::sleep_for(sleep_period);
-    time_slept += sleep_period;
+    printf("FastRTPS detected, sleeping for a fixed interval");
+    (void)topic_name;
+    (void)node;
+    (void)sleep_period;
+    std::this_thread::sleep_for(timeout);
+  }
+  else
+  {
+    while (node->count_subscribers(topic_name) == 0 &&
+      time_slept < std::chrono::duration_cast<std::chrono::microseconds>(timeout))
+    {
+      std::this_thread::sleep_for(sleep_period);
+      time_slept += sleep_period;
+    }
   }
 }
 
