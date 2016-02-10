@@ -30,9 +30,6 @@
 # define CLASSNAME(NAME, SUFFIX) NAME
 #endif
 
-#define STRING_(s) #s
-#define STRING(s) STRING_(s)
-
 static const std::chrono::milliseconds sleep_per_loop(10);
 static const size_t max_loops = 200;
 
@@ -45,7 +42,7 @@ void busy_wait_for_subscriber(
 {
   std::chrono::microseconds time_slept(0);
 #ifdef RMW_IMPLEMENTATION
-  if (strcmp(STRING(RMW_IMPLEMENTATION), "rmw_fastrtps_cpp") == 0) {
+  if (strcmp(#RMW_IMPLEMENTATION, "rmw_fastrtps_cpp") == 0) {
     printf("FastRTPS detected, sleeping for a fixed interval\n");
     (void)topic_name;
     (void)node;
