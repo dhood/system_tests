@@ -75,6 +75,7 @@ TEST(CLASSNAME(test_executor, RMW_IMPLEMENTATION), multiple_executors) {
   counter2 = 0;
   const uint32_t counter_goal = 20;
 
+  printf("initializing executor1\n");
   // Initialize executor 1.
   rclcpp::executors::SingleThreadedExecutor executor1;
   auto callback1 = [&counter1, &counter_goal, &executor1]() {
@@ -84,10 +85,12 @@ TEST(CLASSNAME(test_executor, RMW_IMPLEMENTATION), multiple_executors) {
       }
       ++counter1;
     };
+  printf("making node1\n");  
   auto node1 = rclcpp::Node::make_shared("multiple_executors_1");
   auto timer1 = node1->create_wall_timer(1_ms, callback1);
   executor1.add_node(node1);
 
+  printf("initializing executor2\n");
   // Initialize executor 2.
   rclcpp::executors::SingleThreadedExecutor executor2;
 
@@ -98,6 +101,7 @@ TEST(CLASSNAME(test_executor, RMW_IMPLEMENTATION), multiple_executors) {
       }
       ++counter2;
     };
+  printf("making node2\n");
   auto node2 = rclcpp::Node::make_shared("multiple_executors_2");
   auto timer2 = node2->create_wall_timer(1_ms, callback2);
   executor2.add_node(node2);
@@ -106,16 +110,21 @@ TEST(CLASSNAME(test_executor, RMW_IMPLEMENTATION), multiple_executors) {
       executor2.spin();
     };
 
+  printf("About to spin 2\n");
   // Launch both executors
   std::thread execution_thread(spin_executor2);
-
+  printf("About to spin 1\n");
   executor1.spin();
+  printf("Done spining 1\n");
   execution_thread.join();
+  printf("Done spining 2\n");
   EXPECT_EQ(counter1.load(), counter_goal);
   EXPECT_EQ(counter2.load(), counter_goal);
 
+  printf("force a throw of adding node to two executors\n");
   // Try to add node1 to executor2. It should throw, since node1 was already added to executor1.
   ASSERT_THROW(executor2.add_node(node1), std::runtime_error);
+  printf("Done\n");
 }
 
 int main(int argc, char ** argv)
