@@ -33,6 +33,7 @@ using namespace std::chrono_literals;
 # define CLASSNAME(NAME, SUFFIX) NAME
 #endif
 
+/*
 TEST(CLASSNAME(test_local_parameters, RMW_IMPLEMENTATION), to_string) {
   rclcpp::parameter::ParameterVariant pv("foo", "bar");
   rclcpp::parameter::ParameterVariant pv2("foo2", "bar2");
@@ -363,6 +364,7 @@ TEST(CLASSNAME(test_local_parameters, RMW_IMPLEMENTATION), get_parameter_or) {
     ASSERT_EQ(bar_value2, -1);
   }
 }
+*/
 
 TEST(CLASSNAME(test_local_parameters, RMW_IMPLEMENTATION), set_parameter_if_not_set) {
   using rclcpp::parameter::ParameterVariant;
